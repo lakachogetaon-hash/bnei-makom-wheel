@@ -1,0 +1,965 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>בני מקום מסכמים את 2025</title>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Heebo:wght@400;700;900&display=swap');
+
+    :root{
+      --ink:#0f172a;
+      --muted:#50627a;
+      --primary:#2563eb;
+      --card: rgba(255,255,255,0.92);
+      --shadow: 0 16px 50px rgba(2, 32, 71, 0.22);
+      --ring: rgba(37,99,235,0.18);
+
+      --overlayTop: rgba(0,0,0,0.10);
+      --overlayBottom: rgba(9, 18, 38, 0.22);
+
+      --bgBlur: 6px;   /* נשלט בסליידר */
+    }
+
+    *{ box-sizing:border-box; }
+    body{
+      font-family:'Heebo', system-ui, -apple-system, Segoe UI, Arial, sans-serif;
+      margin:0;
+      min-height:100vh;
+      color:var(--ink);
+      direction: rtl;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+      text-align:center;
+      background:#0b1224;
+      overflow-x:hidden;
+    }
+
+    /* ===== BG layer ===== */
+    .bg{
+      position:fixed;
+      inset:0;
+      z-index:-3;
+      background-size:cover;
+      background-position:center;
+      transform: scale(1.03);
+      filter: blur(var(--bgBlur)) saturate(1.06) contrast(1.02);
+      opacity: 1;
+      transition: opacity 450ms ease, background-image 650ms ease, filter 350ms ease;
+    }
+    .bg::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      background: linear-gradient(180deg, var(--overlayTop), var(--overlayBottom));
+    }
+
+    /* ===== Clean fallback (bright) ===== */
+    body.clean{
+      background: #f6fbff;
+    }
+    body.clean .bg{
+      background-image:
+        radial-gradient(900px 520px at 50% -20%, rgba(127,189,255,0.55), transparent 60%),
+        radial-gradient(650px 420px at 10% 30%, rgba(34,197,94,0.18), transparent 60%),
+        radial-gradient(650px 420px at 90% 70%, rgba(124,58,237,0.14), transparent 60%),
+        linear-gradient(180deg, #eaf4ff, #f7fbff);
+      filter:none;
+    }
+    body.clean .bg::after{ background: transparent; }
+
+    /* subtle sparkles */
+    .sparkles{
+      position:fixed; inset:0; z-index:-2; pointer-events:none;
+      background:
+        radial-gradient(circle at 20% 10%, rgba(255,255,255,0.08) 0 2px, transparent 3px),
+        radial-gradient(circle at 80% 30%, rgba(255,255,255,0.06) 0 2px, transparent 3px),
+        radial-gradient(circle at 50% 70%, rgba(255,255,255,0.06) 0 2px, transparent 3px);
+      opacity:.8;
+      filter: blur(0.2px);
+    }
+
+    #app{
+      width:min(980px, 100%);
+      background: var(--card);
+      border:1px solid rgba(255,255,255,0.28);
+      border-radius:24px;
+      box-shadow: var(--shadow);
+      padding:26px 22px 18px;
+      position:relative;
+      overflow:hidden;
+      backdrop-filter: blur(10px);
+    }
+
+    h1{
+      margin:6px 0 6px;
+      font-size: clamp(28px, 3.7vw, 44px);
+      font-weight:900;
+      color:#0b3aa7;
+      letter-spacing: .2px;
+    }
+
+    .subtitle{
+      margin:0 0 14px;
+      color:var(--muted);
+      font-size: 15px;
+      line-height:1.55;
+    }
+
+    .topbar{
+      display:flex;
+      gap:10px;
+      justify-content:center;
+      flex-wrap:wrap;
+      margin: 12px 0 14px;
+    }
+
+    .chip{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(17,24,39,0.08);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+      cursor:pointer;
+      user-select:none;
+      font-weight:900;
+      font-size: 13px;
+    }
+    .chip small{ font-weight:700; color:var(--muted); }
+    .chip:active{ transform: translateY(1px); }
+
+    .row{
+      display:flex;
+      gap:12px;
+      justify-content:center;
+      flex-wrap:wrap;
+      align-items:center;
+      margin: 8px 0 0;
+    }
+
+    .slider{
+      display:flex;
+      align-items:center;
+      gap:10px;
+      padding:10px 14px;
+      border-radius:14px;
+      border:1px solid rgba(17,24,39,0.08);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.06);
+      font-weight:900;
+      font-size: 13px;
+      color:var(--muted);
+    }
+    .slider input{ width: 180px; }
+
+    .stage{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap:14px;
+      justify-items:center;
+      margin-top: 8px;
+    }
+
+    .wheel-wrap{
+      position:relative;
+      width:min(380px, 88vw);
+      aspect-ratio:1;
+      display:grid;
+      place-items:center;
+      margin: 8px auto 0;
+    }
+
+    .pointer{
+      position:absolute;
+      top:-12px;
+      width:0;height:0;
+      border-left:16px solid transparent;
+      border-right:16px solid transparent;
+      border-bottom:30px solid #111827;
+      filter: drop-shadow(0 12px 12px rgba(0,0,0,0.20));
+      z-index:6;
+    }
+    .pointer::after{
+      content:"";
+      position:absolute;
+      left:-6px;
+      top:18px;
+      width:12px;
+      height:12px;
+      background:#ffffff;
+      border-radius:50%;
+      box-shadow: 0 6px 14px rgba(0,0,0,0.18);
+    }
+
+    .wheel{
+      width:100%;
+      height:100%;
+      border-radius:50%;
+      border:10px solid var(--ring);
+      box-shadow:
+        inset 0 0 0 6px rgba(255,255,255,0.7),
+        0 18px 40px rgba(2, 32, 71, 0.22);
+      overflow:hidden;
+      background:#fff;
+      transform: rotate(var(--rot, 0deg));
+      transition: transform 3.7s cubic-bezier(.10,.85,.10,1);
+      position:relative;
+    }
+
+    .hub{
+      position:absolute;
+      width:96px;height:96px;
+      border-radius:50%;
+      background: radial-gradient(circle at 30% 30%, #ffffff, #e9f2ff);
+      box-shadow: inset 0 0 0 6px rgba(37,99,235,0.18), 0 10px 24px rgba(0,0,0,0.18);
+      z-index:7;
+      display:grid;
+      place-items:center;
+      font-size:26px;
+      font-weight:900;
+      color:#0b3aa7;
+      user-select:none;
+    }
+
+    .label{
+      position:absolute;
+      left:50%; top:50%;
+      transform-origin: 0 0;
+      width:50%;
+      height:0;
+      z-index:5;
+      pointer-events:none;
+    }
+    .label span{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      transform: translate(34px, -12px);
+      background: rgba(255,255,255,0.78);
+      border:1px solid rgba(17,24,39,0.08);
+      border-radius: 999px;
+      padding: 6px 10px;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.10);
+      backdrop-filter: blur(3px);
+      font-weight:900;
+      font-size: 13px;
+      color:#111827;
+      white-space:nowrap;
+    }
+    .label .z{ font-size:18px; line-height:1; }
+
+    #result{
+      width:min(820px, 100%);
+      background: rgba(255,255,255,0.86);
+      border:1px dashed rgba(37,99,235,0.35);
+      border-radius:16px;
+      padding:18px 16px;
+      min-height: 110px;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      box-shadow: 0 10px 18px rgba(2, 32, 71, 0.08);
+      backdrop-filter: blur(8px);
+    }
+    .meta{
+      color:var(--muted);
+      font-size:14px;
+      margin-bottom:6px;
+      font-weight:700;
+    }
+    #questionText{
+      font-size: clamp(18px, 2.6vw, 28px);
+      font-weight:900;
+      color:#0b3aa7;
+      line-height:1.35;
+    }
+
+    .actions{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      justify-content:center;
+      margin-top: 2px;
+    }
+
+    .btn{
+      padding: 14px 22px;
+      font-size: 16px;
+      font-weight:900;
+      cursor:pointer;
+      border:none;
+      border-radius: 999px;
+      user-select:none;
+      transition: transform .12s ease, filter .12s ease;
+    }
+    .btn:active{ transform: translateY(2px); }
+
+    .btn-primary{
+      background: linear-gradient(180deg, #22c55e, #16a34a);
+      color:white;
+      box-shadow: 0 10px 0 #15803d, 0 18px 30px rgba(34,197,94,0.25);
+    }
+    .btn-primary:hover{ filter: brightness(1.03); }
+
+    .btn-ghost{
+      background: rgba(255,255,255,0.84);
+      border: 1px solid rgba(17,24,39,0.10);
+      color:#0f172a;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.06);
+    }
+
+    .btn-danger{
+      background: rgba(239,68,68,0.12);
+      border: 1px solid rgba(239,68,68,0.25);
+      color:#b91c1c;
+      box-shadow: 0 10px 18px rgba(239,68,68,0.10);
+    }
+
+    .small{
+      color:var(--muted);
+      font-size:14px;
+      margin-top:6px;
+    }
+    .small b{ color:#0b3aa7; }
+
+    /* selected slice glow */
+    svg .slice.selected{
+      filter: drop-shadow(0 0 10px rgba(255,255,255,0.85))
+              drop-shadow(0 0 18px rgba(59,130,246,0.65));
+      opacity: 1 !important;
+    }
+
+    .pulse{ animation: pulse 0.55s ease-in-out infinite; }
+    @keyframes pulse{ 0%,100%{ transform: scale(1);} 50%{ transform: scale(1.05);} }
+
+    /* Timer pill */
+    .timer{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      padding:10px 14px;
+      border-radius:999px;
+      border:1px solid rgba(17,24,39,0.08);
+      background: rgba(255,255,255,0.78);
+      box-shadow: 0 10px 18px rgba(0,0,0,0.06);
+      font-weight:900;
+      color:#0f172a;
+    }
+    .timer span{
+      font-variant-numeric: tabular-nums;
+      color:#0b3aa7;
+    }
+
+    @media (prefers-reduced-motion: reduce){
+      .wheel{ transition:none; }
+      .pulse{ animation:none; }
+    }
+  </style>
+</head>
+
+<body class="with-photos">
+  <div class="bg" id="bg"></div>
+  <div class="sparkles"></div>
+
+  <div id="app">
+    <h1>בני מקום מסכמים את 2025</h1>
+    <p class="subtitle">סובבו את גלגל המזלות, ותנו למזל לבחור לכם שאלה לשיחת סיכום שנה 💫</p>
+
+    <div class="topbar">
+      <div class="chip" id="toggleBg">🖼️ <span id="bgLabel">תמונות</span> <small>(לחץ להחלפה)</small></div>
+      <div class="chip" id="toggleMute">🔊 <span id="muteLabel">סאונד פעיל</span></div>
+      <div class="chip" id="goFull">⛶ <span>מסך מלא</span></div>
+      <div class="chip" id="reset">↺ <span>איפוס ערב</span></div>
+    </div>
+
+    <div class="row">
+      <div class="slider">
+        רכות רקע:
+        <input id="blurSlider" type="range" min="0" max="14" value="6" step="1" />
+        <b id="blurVal">6</b>px
+      </div>
+
+      <div class="timer" title="טיימר תשובה">
+        ⏱️ <span id="timerText">02:00</span>
+        <button class="btn btn-ghost" id="timerStart" style="padding:8px 12px;">התחל</button>
+        <button class="btn btn-ghost" id="timerStop" style="padding:8px 12px;">עצור</button>
+      </div>
+    </div>
+
+    <div class="stage">
+      <div class="wheel-wrap">
+        <div class="pointer" aria-hidden="true"></div>
+
+        <div id="wheel" class="wheel" role="img" aria-label="גלגל מזלות צבעוני">
+          <svg id="wheelSvg" viewBox="0 0 100 100" width="100%" height="100%" aria-hidden="true"></svg>
+          <div class="hub" id="hub">✨</div>
+          <div id="labels"></div>
+        </div>
+      </div>
+
+      <div id="result">
+        <div>לחצו על “סובב” כדי לגלות את השאלה הבאה 👇</div>
+      </div>
+
+      <div class="actions">
+        <button class="btn btn-primary" id="spin">סובב את הגלגל!</button>
+        <button class="btn btn-ghost" id="copy">העתק שאלה</button>
+        <button class="btn btn-ghost" id="undo">Undo</button>
+      </div>
+
+      <div class="small">
+        שאלות שטרם נבחרו: <b id="remaining">15</b>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // =========================
+  // CONFIG
+  // =========================
+  const STORAGE_KEY = "bnei-makom-wheel-2025-v2";
+
+  // שים תמונות כאן בתוך repo: /assets/bg1.jpg ... /assets/bg10.jpg
+  // אפשר לשנות שמות/כמות – רק לעדכן את הרשימה
+  const bgImages = [
+    "./assets/bg1.jpg",
+    "./assets/bg2.jpg",
+    "./assets/bg3.jpg",
+    "./assets/bg4.jpg",
+    "./assets/bg5.jpg",
+    "./assets/bg6.jpg",
+    "./assets/bg7.jpg",
+    "./assets/bg8.jpg",
+    "./assets/bg9.jpg",
+    "./assets/bg10.jpg"
+  ];
+
+  const questionsAll = [
+    { id: 1, text: "מה היה רגע שיא שלך בקהילה השנה?" },
+    { id: 2, text: "מהי המילה האחת שאתה רוצה שתנחה את הקהילה שלך בשנת 2026?" },
+    { id: 3, text: "אם יכולת לחזור לתחילת 2025 ולשנות דבר אחד מרכזי בניהול הקהילה – מה הוא היה?" },
+    { id: 4, text: "מה היה הרגע הכי מצחיק שקרה לך בקהילה השנה?" },
+    { id: 5, text: "איזו יוזמה/פרויקט חדש שהכנסתם לקהילה השנה הכי שימח אותך?" },
+    { id: 6, text: "מה היה הפרויקט/אירוע ש'הלך הכי קשה' השנה, ומה הלקח המרכזי שלקחת ממנו?" },
+    { id: 7, text: "מהו הרגע הכי קטן שהרגיש הכי גדול השנה?" },
+    { id: 8, text: "אם היית צריך לבחור שיר אחד שמתאר את האנרגיה של הקהילה שלך ב-2025 – איזה שיר זה?" },
+    { id: 9, text: "מהי הדרך האחת שבה הרשת ('בני מקום') יכולה לתמוך בך הכי טוב בשנה הבאה?" },
+    { id: 10, text: "מהו 'הסיכון החיובי' שאתה רוצה לקחת בשנה הבאה? (דבר אמיץ שאתה רוצה לעשות)." },
+    { id: 11, text: "על מה אתה גאה במיוחד השנה, ברמה האישית או הקהילתית?" },
+    { id: 12, text: "ממה הופתעת לטובה השנה?" },
+    { id: 13, text: "מה היית משנה באופן הפעולה של הקהילה שלך?" },
+    { id: 14, text: "איזו קהילה/מוביל ב'בני מקום' נתנה לך הכי הרבה השראה השנה, ולמה?" },
+    { id: 15, text: "ממה הופתעת לרעה (אכזבה, קושי שלא ציפית לו), ואיך התמודדת?" }
+  ];
+
+  const zodiacs = [
+    { name: "טלה", icon:"♈" }, { name: "שור", icon:"♉" }, { name: "תאומים", icon:"♊" },
+    { name: "סרטן", icon:"♋" }, { name: "אריה", icon:"♌" }, { name: "בתולה", icon:"♍" },
+    { name: "מאזניים", icon:"♎" }, { name: "עקרב", icon:"♏" }, { name: "קשת", icon:"♐" },
+    { name: "גדי", icon:"♑" }, { name: "דלי", icon:"♒" }, { name: "דגים", icon:"♓" }
+  ];
+  const colors = ["#ff6b6b","#ff9f1c","#ffd166","#06d6a0","#2ec4b6","#4dabf7","#3b82f6","#7c3aed","#b5179e","#f72585","#fb7185","#22c55e"];
+  const slice = 360 / zodiacs.length;
+
+  // =========================
+  // DOM
+  // =========================
+  const bgEl = document.getElementById("bg");
+  const wheel = document.getElementById("wheel");
+  const wheelSvg = document.getElementById("wheelSvg");
+  const labelsEl = document.getElementById("labels");
+  const hub = document.getElementById("hub");
+  const result = document.getElementById("result");
+  const remainingEl = document.getElementById("remaining");
+
+  const spinBtn = document.getElementById("spin");
+  const copyBtn = document.getElementById("copy");
+  const undoBtn = document.getElementById("undo");
+  const resetBtn = document.getElementById("reset");
+
+  const toggleBgBtn = document.getElementById("toggleBg");
+  const bgLabel = document.getElementById("bgLabel");
+
+  const toggleMuteBtn = document.getElementById("toggleMute");
+  const muteLabel = document.getElementById("muteLabel");
+
+  const goFullBtn = document.getElementById("goFull");
+
+  const blurSlider = document.getElementById("blurSlider");
+  const blurVal = document.getElementById("blurVal");
+
+  const timerText = document.getElementById("timerText");
+  const timerStartBtn = document.getElementById("timerStart");
+  const timerStopBtn = document.getElementById("timerStop");
+
+  // =========================
+  // STATE + Persistence
+  // =========================
+  let state = {
+    bgIndex: 0,
+    useClean: false,
+    blur: 6,
+    rotation: 0,
+    muted: false,
+    remaining: [...questionsAll],
+    history: [],           // [{question, zodiacIndex, rotationAtStop}]
+    lastShown: null        // {question, zodiacIndex}
+  };
+
+  function saveState(){
+    try{ localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }catch(e){}
+  }
+  function loadState(){
+    try{
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if(!raw) return;
+      const parsed = JSON.parse(raw);
+      // מינימום ואלידציה כדי לא להישבר
+      if(parsed && Array.isArray(parsed.remaining) && Array.isArray(parsed.history)){
+        state = { ...state, ...parsed };
+      }
+    }catch(e){}
+  }
+
+  // =========================
+  // Background with fallback
+  // =========================
+  function setClean(on){
+    document.body.classList.toggle("clean", !!on);
+    state.useClean = !!on;
+    bgLabel.textContent = on ? "נקי" : "תמונות";
+    saveState();
+  }
+
+  function setBlur(px){
+    const val = Math.max(0, Math.min(14, px|0));
+    document.documentElement.style.setProperty("--bgBlur", val + "px");
+    blurSlider.value = String(val);
+    blurVal.textContent = String(val);
+    state.blur = val;
+    saveState();
+  }
+
+  function preload(url, timeoutMs=3500){
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const t = setTimeout(() => reject(new Error("timeout")), timeoutMs);
+      img.onload = () => { clearTimeout(t); resolve(url); };
+      img.onerror = () => { clearTimeout(t); reject(new Error("error")); };
+      img.src = url + (url.includes("?") ? "&" : "?") + "v=" + Date.now();
+    });
+  }
+
+  async function setBgSmart(index){
+    if(state.useClean) return;
+    if(!bgImages.length){ setClean(true); return; }
+
+    const url = bgImages[index % bgImages.length];
+    try{
+      await preload(url);
+      bgEl.style.backgroundImage = `url("${url}")`;
+      state.bgIndex = index % bgImages.length;
+      saveState();
+    }catch(e){
+      // אם תמונות לא נטענות בכלל – עוברים ל-clean
+      setClean(true);
+    }
+  }
+
+  // =========================
+  // Wheel SVG build
+  // =========================
+  function polarToCartesian(cx, cy, r, angleDeg) {
+    const rad = (angleDeg - 90) * Math.PI / 180.0;
+    return { x: cx + (r * Math.cos(rad)), y: cy + (r * Math.sin(rad)) };
+  }
+  function describeArc(cx, cy, r, startAngle, endAngle) {
+    const start = polarToCartesian(cx, cy, r, endAngle);
+    const end = polarToCartesian(cx, cy, r, startAngle);
+    const largeArcFlag = (endAngle - startAngle) <= 180 ? "0" : "1";
+    return ["M", cx, cy, "L", start.x, start.y, "A", r, r, 0, largeArcFlag, 0, end.x, end.y, "Z"].join(" ");
+  }
+
+  function buildWheel(){
+    wheelSvg.innerHTML = "";
+    labelsEl.innerHTML = "";
+
+    zodiacs.forEach((z, i) => {
+      const start = i * slice;
+      const end = (i + 1) * slice;
+
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("d", describeArc(50, 50, 48, start, end));
+      path.setAttribute("fill", colors[i % colors.length]);
+      path.setAttribute("opacity", "0.95");
+      path.classList.add("slice");
+      path.dataset.index = String(i);
+      wheelSvg.appendChild(path);
+
+      const shine = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      shine.setAttribute("d", describeArc(50, 50, 48, start, end));
+      shine.setAttribute("fill", "white");
+      shine.setAttribute("opacity", "0.08");
+      wheelSvg.appendChild(shine);
+
+      const label = document.createElement("div");
+      label.className = "label";
+      const angleMid = start + slice / 2;
+      label.style.transform = `rotate(${angleMid}deg)`;
+      label.innerHTML = `<span><span class="z">${z.icon}</span><span>${z.name}</span></span>`;
+      labelsEl.appendChild(label);
+    });
+
+    const centerCircle = document.createElementNS("http://www.w3.org/2000/svg", "circle");
+    centerCircle.setAttribute("cx", "50");
+    centerCircle.setAttribute("cy", "50");
+    centerCircle.setAttribute("r", "18");
+    centerCircle.setAttribute("fill", "rgba(255,255,255,0.22)");
+    wheelSvg.appendChild(centerCircle);
+  }
+
+  function clearSelectedSlice(){
+    wheelSvg.querySelectorAll(".slice.selected").forEach(el => el.classList.remove("selected"));
+  }
+  function selectSlice(index){
+    clearSelectedSlice();
+    const el = wheelSvg.querySelector(`.slice[data-index="${index}"]`);
+    if (el) el.classList.add("selected");
+  }
+
+  function zodiacAtPointer(finalRotationDeg){
+    const normalized = ((360 - (finalRotationDeg % 360)) + 360) % 360;
+    return Math.floor(normalized / slice) % zodiacs.length;
+  }
+
+  // =========================
+  // Audio (mute safe)
+  // =========================
+  let audioCtx;
+  function initAudio(){
+    if(state.muted) return;
+    if(!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    if(audioCtx.state === "suspended") audioCtx.resume();
+  }
+  function beep({freq=800, duration=0.03, type="sine", gain=0.06} = {}) {
+    if (state.muted) return;
+    initAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = type;
+    o.frequency.value = freq;
+    g.gain.value = 0;
+    o.connect(g);
+    g.connect(audioCtx.destination);
+    const t = audioCtx.currentTime;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(gain, t + 0.005);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + duration);
+    o.start(t);
+    o.stop(t + duration + 0.02);
+  }
+  function whoosh(){
+    if(state.muted) return;
+    initAudio();
+    const o = audioCtx.createOscillator();
+    const g = audioCtx.createGain();
+    o.type = "triangle";
+    const t = audioCtx.currentTime;
+    o.frequency.setValueAtTime(240, t);
+    o.frequency.exponentialRampToValueAtTime(60, t + 0.24);
+    g.gain.setValueAtTime(0.001, t);
+    g.gain.exponentialRampToValueAtTime(0.09, t + 0.03);
+    g.gain.exponentialRampToValueAtTime(0.001, t + 0.24);
+    o.connect(g); g.connect(audioCtx.destination);
+    o.start(); o.stop(t + 0.25);
+  }
+  function chimeWin(){
+    beep({freq:660, duration:0.05, type:"sine", gain:0.07});
+    setTimeout(()=>beep({freq:880, duration:0.06, type:"sine", gain:0.07}), 70);
+    setTimeout(()=>beep({freq:1100, duration:0.07, type:"sine", gain:0.07}), 150);
+  }
+  let tickTimer=null;
+  function startTicks(spinMs=3700){
+    const start = performance.now();
+    const end = start + spinMs;
+    const tick = () => {
+      const now = performance.now();
+      const p = Math.min(1, (now - start) / spinMs);
+      const interval = 35 + (p*p) * 150;
+      beep({freq: 920 - p*260, duration:0.02, type:"square", gain:0.04});
+      if (now < end) tickTimer = setTimeout(tick, interval);
+    };
+    tick();
+  }
+  function stopTicks(){ if(tickTimer) clearTimeout(tickTimer); tickTimer=null; }
+
+  function setMuted(on){
+    state.muted = !!on;
+    muteLabel.textContent = state.muted ? "מושתק" : "סאונד פעיל";
+    toggleMuteBtn.firstChild.textContent = state.muted ? "🔇 " : "🔊 ";
+    saveState();
+  }
+
+  // =========================
+  // UI rendering
+  // =========================
+  function renderRemaining(){
+    remainingEl.textContent = String(state.remaining.length);
+  }
+
+  function renderLast(){
+    if(!state.lastShown){
+      result.innerHTML = `<div>לחצו על “סובב” כדי לגלות את השאלה הבאה 👇</div>`;
+      return;
+    }
+    const { question, zodiacIndex } = state.lastShown;
+    const z = zodiacs[zodiacIndex];
+    result.innerHTML = `
+      <div>
+        <div class="meta">המזל שנפל: <b>${z.icon} ${z.name}</b> · שאלה מספר <b>${question.id}</b></div>
+        <div id="questionText">${question.text}</div>
+      </div>
+    `;
+  }
+
+  async function copyCurrent(){
+    const qt = state.lastShown?.question?.text;
+    if(!qt){
+      flashMsg("אין עדיין שאלה להעתקה 🙂");
+      return;
+    }
+    try{
+      await navigator.clipboard.writeText(qt);
+      flashMsg("הועתק ✅");
+    }catch(e){
+      // fallback
+      const ta = document.createElement("textarea");
+      ta.value = qt;
+      document.body.appendChild(ta);
+      ta.select();
+      document.execCommand("copy");
+      ta.remove();
+      flashMsg("הועתק ✅");
+    }
+  }
+
+  let flashTimeout=null;
+  function flashMsg(text){
+    const prev = result.innerHTML;
+    result.innerHTML = `<div style="font-weight:900;color:#0b3aa7;">${text}</div>`;
+    clearTimeout(flashTimeout);
+    flashTimeout = setTimeout(()=>{ renderLast(); }, 850);
+  }
+
+  // =========================
+  // Timer (2:00 default)
+  // =========================
+  let timerTotal = 120; // seconds
+  let timerLeft = 120;
+  let timerInt = null;
+
+  function formatMMSS(s){
+    const m = String(Math.floor(s/60)).padStart(2,"0");
+    const ss = String(s%60).padStart(2,"0");
+    return `${m}:${ss}`;
+  }
+  function timerRender(){
+    timerText.textContent = formatMMSS(timerLeft);
+  }
+  function timerStop(){
+    if(timerInt) clearInterval(timerInt);
+    timerInt = null;
+    timerLeft = timerTotal;
+    timerRender();
+  }
+  function timerStart(){
+    if(timerInt) return;
+    timerLeft = timerTotal;
+    timerRender();
+    timerInt = setInterval(()=>{
+      timerLeft--;
+      timerRender();
+      if(timerLeft <= 0){
+        clearInterval(timerInt);
+        timerInt = null;
+        timerLeft = 0;
+        timerRender();
+        // צליל עדין בסיום
+        if(!state.muted){
+          beep({freq:520, duration:0.08, type:"sine", gain:0.06});
+          setTimeout(()=>beep({freq:520, duration:0.08, type:"sine", gain:0.06}), 120);
+        }
+      }
+    }, 1000);
+  }
+
+  // =========================
+  // Spin / Undo / Reset
+  // =========================
+  let spinning = false;
+
+  function pickQuestion(){
+    const i = Math.floor(Math.random() * state.remaining.length);
+    const q = state.remaining[i];
+    state.remaining.splice(i, 1);
+    return q;
+  }
+
+  async function spin(){
+    if(spinning) return;
+    if(state.remaining.length === 0){
+      result.innerHTML = `<div style="font-weight:900;color:#b91c1c;">כל השאלות נבחרו! סיימתם בהצלחה 🎉</div>`;
+      spinBtn.disabled = true;
+      return;
+    }
+
+    spinning = true;
+    spinBtn.disabled = true;
+    hub.classList.add("pulse");
+    hub.textContent = "🎲";
+    clearSelectedSlice();
+
+    result.innerHTML = `מסובב... <span style="font-size:1.35em;">⏳</span>`;
+
+    if(!state.useClean){
+      await setBgSmart(state.bgIndex + 1);
+    }
+
+    whoosh();
+    startTicks(3700);
+
+    const extraTurns = 6 + Math.floor(Math.random()*4);
+    const landingOffset = Math.random() * slice;
+    const target = state.rotation + (extraTurns*360) + (360 - landingOffset);
+    state.rotation = target;
+
+    wheel.style.setProperty("--rot", `${state.rotation}deg`);
+
+    setTimeout(()=>{
+      stopTicks();
+      hub.classList.remove("pulse");
+      hub.textContent = "✨";
+
+      const zodiacIndex = zodiacAtPointer(state.rotation);
+      selectSlice(zodiacIndex);
+
+      const question = pickQuestion();
+      state.lastShown = { question, zodiacIndex };
+      state.history.push({ question, zodiacIndex, rotationAtStop: state.rotation });
+
+      chimeWin();
+      renderLast();
+      renderRemaining();
+
+      saveState();
+      spinBtn.disabled = false;
+      spinning = false;
+
+      // אם נגמרו שאלות
+      if(state.remaining.length === 0){
+        setTimeout(()=>{
+          result.innerHTML = `<div style="font-weight:900;color:#0b3aa7;">סיימנו! 🎉 אפשר ללחוץ איפוס כדי להתחיל שוב.</div>`;
+        }, 700);
+      }
+    }, 3720);
+  }
+
+  function undo(){
+    if(spinning) return;
+    const last = state.history.pop();
+    if(!last){
+      flashMsg("אין מה לבטל עדיין 🙂");
+      return;
+    }
+    // מחזירים את השאלה לרשימת השאלות
+    state.remaining.push(last.question);
+    // קובעים lastShown לפי ההיסטוריה החדשה
+    const prev = state.history[state.history.length - 1] || null;
+    state.lastShown = prev ? { question: prev.question, zodiacIndex: prev.zodiacIndex } : null;
+
+    clearSelectedSlice();
+    if(prev) selectSlice(prev.zodiacIndex);
+
+    renderLast();
+    renderRemaining();
+    spinBtn.disabled = false;
+
+    saveState();
+  }
+
+  function resetAll(){
+    if(spinning) return;
+    const ok = confirm("לאפס את הערב? זה יחזיר את כל השאלות.");
+    if(!ok) return;
+    state.remaining = [...questionsAll];
+    state.history = [];
+    state.lastShown = null;
+    state.rotation = 0;
+    wheel.style.setProperty("--rot", `0deg`);
+    clearSelectedSlice();
+    renderLast();
+    renderRemaining();
+    spinBtn.disabled = false;
+    saveState();
+  }
+
+  // =========================
+  // Events
+  // =========================
+  spinBtn.addEventListener("click", spin);
+  copyBtn.addEventListener("click", copyCurrent);
+  undoBtn.addEventListener("click", undo);
+
+  resetBtn.addEventListener("click", resetAll);
+
+  toggleBgBtn.addEventListener("click", async () => {
+    setClean(!state.useClean);
+    if(!state.useClean){
+      await setBgSmart(state.bgIndex);
+    }
+  });
+
+  toggleMuteBtn.addEventListener("click", () => setMuted(!state.muted));
+
+  goFullBtn.addEventListener("click", async () => {
+    try{
+      if(!document.fullscreenElement) await document.documentElement.requestFullscreen();
+      else await document.exitFullscreen();
+    }catch(e){}
+  });
+
+  blurSlider.addEventListener("input", () => setBlur(parseInt(blurSlider.value,10)));
+
+  timerStartBtn.addEventListener("click", timerStart);
+  timerStopBtn.addEventListener("click", timerStop);
+
+  // =========================
+  // Init
+  // =========================
+  loadState();
+  buildWheel();
+  setMuted(state.muted);
+  setBlur(state.blur);
+  setClean(state.useClean);
+  renderRemaining();
+  renderLast();
+
+  // background
+  if(!state.useClean){
+    setBgSmart(state.bgIndex);
+  }
+
+  // button state
+  if(state.remaining.length === 0) spinBtn.disabled = true;
+
+  // timer init
+  timerRender();
+</script>
+</body>
+</html>
